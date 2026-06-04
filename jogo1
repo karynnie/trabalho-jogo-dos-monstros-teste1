@@ -1,8 +1,10 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #ifdef _WIN32
+#include <windows.h>
 #define CLEAR "cls"
 #else
 #define CLEAR "clear"
@@ -10,55 +12,123 @@
 
 #define MAX 25
 
+
+#define ANSI_RESET   "\x1b[0m"
+#define ANSI_RED     "\x1b[31m"
+#define ANSI_GREEN   "\x1b[32m"
+#define ANSI_YELLOW  "\x1b[33m"
+#define ANSI_BLUE    "\x1b[34m"
+#define ANSI_MAGENTA "\x1b[35m"
+#define ANSI_CYAN    "\x1b[36m"
+#define ANSI_WHITE   "\x1b[37m"
+#define ANSI_BOLD    "\x1b[1m"
+
+
 int vidas = 3;
-int arma = 0;
+int arma = 0; 
 char direcao = 'v';
 int px, py;
 int temChave = 0;
 int jogoRodando = 1;
+
 
 void limpar() {
     system(CLEAR);
 }
 
 void pausar() {
-    printf("\nPressione ENTER para continuar...");
+    printf(ANSI_YELLOW "\nPressione ENTER para continuar..." ANSI_RESET);
     getchar();
+}
+
+
+void ativarSuporteCores() {
+#ifdef _WIN32
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hOut != INVALID_HANDLE_VALUE) {
+        DWORD dwMode = 0;
+        if (GetConsoleMode(hOut, &dwMode)) {
+            dwMode |= 0x0004; 
+            SetConsoleMode(hOut, dwMode);
+        }
+    }
+#endif
 }
 
 void mostrarIntro() {
     limpar();
+    printf(ANSI_CYAN "===================================================================\n" ANSI_RESET);
+    printf(ANSI_BOLD ANSI_MAGENTA "                       O HEROI DA REDENCAO                         \n" ANSI_RESET);
+    printf(ANSI_CYAN "===================================================================\n\n" ANSI_RESET);
 
-    printf("====================================================\n");
-    printf("              O HEROI DA REDENCAO\n");
-    printf("====================================================\n\n");
+    printf(" Durante muitos anos, um antigo heroi viveu longe de seu reino.\n");
+    printf(" Depois de cometer graves erros no passado, ele perdeu a confiança do povo\n");
+    printf(" e foi obrigado a abandonar sua terra natal em desonra.\n\n");
 
-    printf("Durante muitos anos, um antigo heroi viveu longe de seu reino.\n");
-    printf("Depois de cometer erros no passado, ele perdeu a confianca do povo\n");
-    printf("e foi obrigado a abandonar sua terra natal.\n\n");
+    printf(" Cansado de fugir de si mesmo, ele chega a uma pequena vila tomada pelo medo.\n");
+    printf(" Os moradores clamam que uma masmorra sombria surgiu perto dali,\n");
+    printf(" libertando monstros terriveis que impedem qualquer um de seguir caminho.\n\n");
 
-    printf("Cansado de fugir, ele chega a uma pequena cidade tomada pelo medo.\n");
-    printf("Os moradores contam que uma masmorra sombria surgiu perto dali,\n");
-    printf("libertando monstros que impedem qualquer viajante de seguir caminho.\n\n");
+    printf(ANSI_GREEN " Para conquistar sua redencao e a chance de voltar ao seu reino,\n" ANSI_RESET);
+    printf(ANSI_GREEN " o heroi precisara falar com o guardiao da vila, escolher uma arma\n" ANSI_RESET);
+    printf(ANSI_GREEN " e enfrentar as profundezas perigosas da masmorra.\n\n" ANSI_RESET);
 
-    printf("Para conquistar sua redencao e voltar ao seu reino,\n");
-    printf("o heroi precisara falar com o guardiao da vila,\n");
-    printf("escolher uma arma e enfrentar os perigos da masmorra.\n\n");
+    printf(ANSI_BOLD ANSI_RED " Somente derrotando o Boss Final ele podera recuperar sua honra.\n\n" ANSI_RESET);
+    printf(ANSI_CYAN "===================================================================\n" ANSI_RESET);
+    pausar();
+}
 
-    printf("Somente derrotando o Boss Final ele podera recuperar sua honra.\n");
+void tutorial() {
+    limpar();
+    printf(ANSI_CYAN "===================================================================\n" ANSI_RESET);
+    printf(ANSI_BOLD ANSI_YELLOW "                             TUTORIAL                              \n" ANSI_RESET);
+    printf(ANSI_CYAN "===================================================================\n\n" ANSI_RESET);
 
+    printf(ANSI_BOLD "Legenda de Símbolos:\n" ANSI_RESET);
+    printf(ANSI_GREEN "  < ^ > v " ANSI_RESET " : Jogador (indica a direção do olhar)\n");
+    printf(ANSI_WHITE "  * " ANSI_RESET " : Parede intransponível\n");
+    printf(ANSI_RED   "  #       " ANSI_RESET " : Espinho (tocar causa dano instantaneo)\n");
+    printf(ANSI_YELLOW"  k       " ANSI_RESET " : Caixa (destrutivel com ataque)\n");
+    printf(ANSI_CYAN  "  O       " ANSI_RESET " : Botão de interação\n");
+    printf(ANSI_RED   "  D       " ANSI_RESET " : Porta Fechada\n");
+    printf(ANSI_GREEN "  =       " ANSI_RESET " : Porta Aberta\n");
+    printf(ANSI_YELLOW"  @       " ANSI_RESET " : Chave\n");
+    printf(ANSI_CYAN  "  L       " ANSI_RESET " : Escada para o proximo andar\n");
+    printf(ANSI_MAGENTA"  N       " ANSI_RESET " : Guardião da Vila (NPC)\n");
+    printf(ANSI_RED   "  X / Y   " ANSI_RESET " : Monstros (1: Aleatório | 2: Perseguidor)\n");
+    printf(ANSI_BOLD ANSI_RED "  Z       " ANSI_RESET " : Boss Final\n\n");
+
+    printf(ANSI_BOLD "Comandos de Açao:\n" ANSI_RESET);
+    printf("  " ANSI_BOLD "W, A, S, D" ANSI_RESET " -> Movimentar o personagem\n");
+    printf("  " ANSI_BOLD "I" ANSI_RESET "          -> Interagir (Portas, Chaves, Botões, NPC)\n");
+    printf("  " ANSI_BOLD "O" ANSI_RESET "          -> Atacar com a arma equipada\n");
+    printf("  " ANSI_BOLD "Q" ANSI_RESET "          -> Sair da partida atual\n\n");
+    printf(ANSI_CYAN "===================================================================\n" ANSI_RESET);
+    pausar();
+}
+
+void creditos() {
+    limpar();
+    printf(ANSI_CYAN "===================================================================\n" ANSI_RESET);
+    printf(ANSI_BOLD ANSI_GREEN "                             CREDITOS                              \n" ANSI_RESET);
+    printf(ANSI_CYAN "===================================================================\n\n" ANSI_RESET);
+    printf(ANSI_BOLD " Jogo:" ANSI_RESET " O Herói da Redencao\n\n");
+    printf(ANSI_BOLD " Desenvolvedores:\n" ANSI_RESET);
+    printf("  • Karynnie\n");
+    printf("  • Victor Yoshio\n");
+    printf("  • Neto\n\n");
+    printf(" Projeto acadêmico de Dungeon Crawler desenvolvido em Linguagem C.\n\n");
+    printf(ANSI_CYAN "===================================================================\n" ANSI_RESET);
     pausar();
 }
 
 void inicializarMapa(char mapa[MAX][MAX], int tamanho) {
     int i, j;
-
     for (i = 0; i < tamanho; i++) {
         for (j = 0; j < tamanho; j++) {
             mapa[i][j] = '.';
         }
     }
-
     for (i = 0; i < tamanho; i++) {
         mapa[0][i] = '*';
         mapa[tamanho - 1][i] = '*';
@@ -69,35 +139,45 @@ void inicializarMapa(char mapa[MAX][MAX], int tamanho) {
 
 void mostrarMapa(char mapa[MAX][MAX], int tamanho, char titulo[]) {
     int i, j;
-
     limpar();
 
-    printf("====================================================\n");
-    printf(" %s\n", titulo);
-    printf("====================================================\n");
-    printf("Vidas: %d | ", vidas);
-
-    if (arma == 1) printf("Arma: Espada");
-    else if (arma == 2) printf("Arma: Arco e Flecha");
-    else if (arma == 3) printf("Arma: Cajado");
-    else printf("Arma: Nenhuma");
-
-    printf(" | Chaves: %d\n\n", temChave);
+    printf(ANSI_CYAN "====================================================\n" ANSI_RESET);
+    printf(ANSI_BOLD ANSI_WHITE " %s\n" ANSI_RESET, titulo);
+    printf(ANSI_CYAN "====================================================\n" ANSI_RESET);
+    
+    printf(ANSI_BOLD ANSI_RED "Vidas: %d" ANSI_RESET " | ", vidas);
+    printf(ANSI_BOLD ANSI_GREEN);
+    if (arma == 1) printf("Arma: Espada ??");
+    else if (arma == 2) printf("Arma: Arco e Flecha ??");
+    else if (arma == 3) printf("Arma: Cajado ??");
+    else printf("Arma: Nenhuma ??");
+    printf(ANSI_RESET " | " ANSI_BOLD ANSI_YELLOW "Chaves: %d\n\n" ANSI_RESET, temChave);
 
     for (i = 0; i < tamanho; i++) {
         for (j = 0; j < tamanho; j++) {
-            if (i == px && j == py)
-                printf("%c ", direcao);
-            else
-                printf("%c ", mapa[i][j]);
+            if (i == px && j == py) {
+                printf(ANSI_BOLD ANSI_GREEN "%c " ANSI_RESET, direcao);
+            } else {
+                switch(mapa[i][j]) {
+                    case '*': printf(ANSI_WHITE "%c " ANSI_RESET, mapa[i][j]); break;
+                    case '#': printf(ANSI_RED "%c " ANSI_RESET, mapa[i][j]); break;
+                    case 'k': printf(ANSI_YELLOW "%c " ANSI_RESET, mapa[i][j]); break;
+                    case 'O': printf(ANSI_CYAN "%c " ANSI_RESET, mapa[i][j]); break;
+                    case 'D': printf(ANSI_RED "%c " ANSI_RESET, mapa[i][j]); break;
+                    case '=': printf(ANSI_GREEN "%c " ANSI_RESET, mapa[i][j]); break;
+                    case '@': printf(ANSI_YELLOW "%c " ANSI_RESET, mapa[i][j]); break;
+                    case 'L': printf(ANSI_CYAN "%c " ANSI_RESET, mapa[i][j]); break;
+                    case 'N': printf(ANSI_MAGENTA "%c " ANSI_RESET, mapa[i][j]); break;
+                    case 'X': 
+                    case 'Y': printf(ANSI_BOLD ANSI_RED "%c " ANSI_RESET, mapa[i][j]); break;
+                    case 'Z': printf(ANSI_BOLD ANSI_MAGENTA "%c " ANSI_RESET, mapa[i][j]); break;
+                    default:  printf("%c ", mapa[i][j]); break;
+                }
+            }
         }
         printf("\n");
     }
-
-    printf("\nW A S D = mover");
-    printf("\nI = interagir");
-    printf("\nO = atacar");
-    printf("\nQ = voltar/sair\n");
+    printf(ANSI_WHITE "\n Comandos: W/A/S/D = Mover | I = Interagir | O = Atacar | Q = Sair\n" ANSI_RESET);
 }
 
 int frenteX() {
@@ -111,64 +191,58 @@ int frenteY() {
     if (direcao == '>') return py + 1;
     return py;
 }
-
 void escolherArma() {
     int escolha;
-
     limpar();
+    printf(ANSI_CYAN "====================================================\n" ANSI_RESET);
+    printf(ANSI_BOLD ANSI_MAGENTA "                 GUARDIAO DA VILA\n" ANSI_RESET);
+    printf(ANSI_CYAN "====================================================\n\n" ANSI_RESET);
 
-    printf("====================================================\n");
-    printf("                 GUARDIAO DA VILA\n");
-    printf("====================================================\n\n");
+    printf(" Guardião: Estranho... vejo o peso do passado em seu olhar.\n");
+    printf(" Guardião: Voce nao veio ate aqui apenas por ouro ou gloria.\n");
+    printf(" Guardião: Voce veio buscar a sua redenção.\n\n");
+    printf(" Guardião: A masmorra adiante esconde perigos terriveis.\n");
+    printf(" Guardião: Se deseja sobreviver e voltar ao seu lar, escolha sabiamente:\n\n");
 
-    printf("Guardiao: Estranho... vejo peso em seu olhar.\n");
-    printf("Guardiao: Voce nao veio apenas por aventura.\n");
-    printf("Guardiao: Voce veio em busca de redencao.\n\n");
-
-    printf("Guardiao: A masmorra guarda monstros perigosos.\n");
-    printf("Guardiao: Se deseja voltar ao seu reino, escolha uma arma.\n\n");
-
-    printf("[1] Espada        - ataca uma area 3x2 na frente\n");
-    printf("[2] Arco e Flecha - ataca 4 casas em linha reta\n");
-    printf("[3] Cajado        - ataca as 8 casas ao redor\n\n");
+    printf(ANSI_YELLOW " [1] Espada" ANSI_RESET "        - Ataca uma área de 3x2 à sua frente\n");
+    printf(ANSI_GREEN  " [2] Arco e Flecha" ANSI_RESET " - Ataca em linha reta por até 4 celulas\n");
+    printf(ANSI_CYAN   " [3] Cajado" ANSI_RESET "        - Ataca simultaneamente as 8 células ao redor\n\n");
 
     printf("Escolha sua arma: ");
-    scanf("%d", &escolha);
+    if (scanf("%d", &escolha) != 1) escolha = 1;
     getchar();
 
     if (escolha == 1) {
         arma = 1;
-        printf("\nVoce escolheu a Espada.\n");
+        printf(ANSI_BOLD "\nVoce empunhou a Espada.\n" ANSI_RESET);
     } else if (escolha == 2) {
         arma = 2;
-        printf("\nVoce escolheu o Arco e Flecha.\n");
+        printf(ANSI_BOLD "\nVoce esticou as cordas do Arco e Flecha.\n" ANSI_RESET);
     } else if (escolha == 3) {
         arma = 3;
-        printf("\nVoce escolheu o Cajado.\n");
+        printf(ANSI_BOLD "\nVoce sentiu a energia fluir pelo Cajado.\n" ANSI_RESET);
     } else {
         arma = 1;
-        printf("\nEscolha invalida. O Guardiao entregou uma Espada para voce.\n");
+        printf("\nOpcao invalida. O Guardiao jogou uma velha Espada em suas maos.\n");
     }
 
-    printf("\nGuardiao: Siga em frente, heroi.");
-    printf("\nGuardiao: Que sua coragem seja maior que sua culpa.\n");
-
+    printf("\n Guardião: Siga de cabeça erguida, heroi.");
+    printf("\n Guardião: Que sua coragem seja maior que as suas cicatrizes.\n");
     pausar();
 }
 
 void perderVida() {
     vidas--;
-
     if (vidas <= 0) {
         limpar();
-        printf("====================================================\n");
-        printf("                    GAME OVER\n");
-        printf("====================================================\n\n");
-        printf("O heroi caiu antes de conseguir sua redencao.\n");
+        printf(ANSI_BOLD ANSI_RED "====================================================\n" ANSI_RESET);
+        printf(ANSI_BOLD ANSI_RED "                    GAME OVER\n" ANSI_RESET);
+        printf(ANSI_BOLD ANSI_RED "====================================================\n\n" ANSI_RESET);
+        printf(" O heroi tombou nas profundezas antes de alcançar sua redencao.\n");
         jogoRodando = 0;
         pausar();
     } else {
-        printf("\nVoce perdeu 1 vida! Vidas restantes: %d\n", vidas);
+        printf(ANSI_BOLD ANSI_RED "\nVoce foi atingido! Perdeu 1 vida. Vidas Restantes: %d\n" ANSI_RESET, vidas);
         pausar();
     }
 }
@@ -179,53 +253,36 @@ void vila() {
     int nx, ny, fx, fy;
 
     inicializarMapa(mapa, 10);
+    px = 5; py = 5; direcao = 'v';
+    mapa[3][3] = 'N'; 
+    mapa[1][8] = 'L'; 
 
-    px = 5;
-    py = 5;
-    direcao = 'v';
-
-    mapa[3][3] = 'N';
-    mapa[1][8] = 'L';
-
-    while (1) {
+    while (jogoRodando) {
         mostrarMapa(mapa, 10, "VILA INICIAL");
-
         printf("\nComando: ");
         scanf(" %c", &comando);
         getchar();
 
-        nx = px;
-        ny = py;
+        nx = px; ny = py;
+        if (comando == 'q' || comando == 'Q') { jogoRodando = 0; return; }
 
-        if (comando == 'q' || comando == 'Q') return;
-
-        if (comando == 'w' || comando == 'W') {
-            direcao = '^';
-            nx--;
-        } else if (comando == 's' || comando == 'S') {
-            direcao = 'v';
-            nx++;
-        } else if (comando == 'a' || comando == 'A') {
-            direcao = '<';
-            ny--;
-        } else if (comando == 'd' || comando == 'D') {
-            direcao = '>';
-            ny++;
-        } else if (comando == 'i' || comando == 'I') {
-            fx = frenteX();
-            fy = frenteY();
-
+        if (comando == 'w' || comando == 'W') { direcao = '^'; nx--; }
+        else if (comando == 's' || comando == 'S') { direcao = 'v'; nx++; }
+        else if (comando == 'a' || comando == 'A') { direcao = '<'; ny--; }
+        else if (comando == 'd' || comando == 'D') { direcao = '>'; ny++; }
+        else if (comando == 'i' || comando == 'I') {
+            fx = frenteX(); fy = frenteY();
             if (mapa[fx][fy] == 'N') {
                 escolherArma();
             } else if (mapa[fx][fy] == 'L') {
                 if (arma == 0) {
-                    printf("\nVoce precisa falar com o NPC antes de entrar na masmorra.\n");
+                    printf(ANSI_RED "\nVoce precisa falar com o Guardiao antes de entrar na masmorra.\n" ANSI_RESET);
                     pausar();
                 } else {
                     return;
                 }
             } else {
-                printf("\nNao ha nada para interagir aqui.\n");
+                printf("\nNao ha nada para interagir na sua frente.\n");
                 pausar();
             }
         }
@@ -233,12 +290,11 @@ void vila() {
         if (mapa[nx][ny] == '*' || mapa[nx][ny] == 'N' || mapa[nx][ny] == 'L') {
             if (comando == 'w' || comando == 'a' || comando == 's' || comando == 'd' ||
                 comando == 'W' || comando == 'A' || comando == 'S' || comando == 'D') {
-                printf("\nVoce nao pode passar por cima desse objeto. Use I para interagir.\n");
+                printf("\nCaminho bloqueado. Interaja usando 'I'.\n");
                 pausar();
             }
         } else {
-            px = nx;
-            py = ny;
+            px = nx; py = ny;
         }
     }
 }
@@ -252,148 +308,96 @@ void destruirCelula(char mapa[MAX][MAX], int x, int y, int tamanho) {
 }
 
 void ataque(char mapa[MAX][MAX], int tamanho) {
-    int i, j;
-    int ax, ay;
+    int i, j, ax, ay;
 
-    if (arma == 1) {
+    if (arma == 1) { 
         for (i = 1; i <= 2; i++) {
             if (direcao == '^') {
-                ax = px - i;
-                for (j = py - 1; j <= py + 1; j++) destruirCelula(mapa, ax, j, tamanho);
+                ax = px - i; for (j = py - 1; j <= py + 1; j++) destruirCelula(mapa, ax, j, tamanho);
             } else if (direcao == 'v') {
-                ax = px + i;
-                for (j = py - 1; j <= py + 1; j++) destruirCelula(mapa, ax, j, tamanho);
+                ax = px + i; for (j = py - 1; j <= py + 1; j++) destruirCelula(mapa, ax, j, tamanho);
             } else if (direcao == '<') {
-                ay = py - i;
-                for (j = px - 1; j <= px + 1; j++) destruirCelula(mapa, j, ay, tamanho);
+                ay = py - i; for (j = px - 1; j <= px + 1; j++) destruirCelula(mapa, j, ay, tamanho);
             } else if (direcao == '>') {
-                ay = py + i;
-                for (j = px - 1; j <= px + 1; j++) destruirCelula(mapa, j, ay, tamanho);
+                ay = py + i; for (j = px - 1; j <= px + 1; j++) destruirCelula(mapa, j, ay, tamanho);
             }
         }
-
-        printf("\nVoce atacou com a Espada.\n");
-    } else if (arma == 2) {
+        printf(ANSI_GREEN "\nVoce desferiu um corte amplo com a Espada!\n" ANSI_RESET);
+    } else if (arma == 2) { 
         for (i = 1; i <= 4; i++) {
-            ax = px;
-            ay = py;
-
+            ax = px; ay = py;
             if (direcao == '^') ax -= i;
             if (direcao == 'v') ax += i;
             if (direcao == '<') ay -= i;
             if (direcao == '>') ay += i;
-
             destruirCelula(mapa, ax, ay, tamanho);
         }
-
-        printf("\nVoce atacou com o Arco e Flecha.\n");
-    } else if (arma == 3) {
+        printf(ANSI_GREEN "\nVoce disparou uma flecha veloz!\n" ANSI_RESET);
+    } else if (arma == 3) { 
         for (i = px - 1; i <= px + 1; i++) {
             for (j = py - 1; j <= py + 1; j++) {
-                if (!(i == px && j == py)) {
-                    destruirCelula(mapa, i, j, tamanho);
-                }
+                if (!(i == px && j == py)) destruirCelula(mapa, i, j, tamanho);
             }
         }
-
-        printf("\nVoce atacou com o Cajado.\n");
+        printf(ANSI_GREEN "\numa explosao magica emanou do seu Cajado!\n" ANSI_RESET);
     } else {
-        printf("\nVoce ainda nao tem arma.\n");
+        printf("\nVoce nao tem armas equipadas para atacar!\n");
     }
-
     pausar();
 }
 
-void moverMonstroAleatorio(char mapa[MAX][MAX], int tamanho) {
-    int i, j, dir, nx, ny;
+void atualizarInimigos(char mapa[MAX][MAX], int tamanho) {
+    int i, j;
+    int movido[MAX][MAX];
+
+    for (i = 0; i < tamanho; i++) {
+        for (j = 0; j < tamanho; j++) {
+            movido[i][j] = 0;
+        }
+    }
 
     for (i = 1; i < tamanho - 1; i++) {
         for (j = 1; j < tamanho - 1; j++) {
-            if (mapa[i][j] == 'X') {
-                dir = rand() % 4;
-                nx = i;
-                ny = j;
+            if (movido[i][j]) continue;
 
+            if (mapa[i][j] == 'X') {
+                int dir = rand() % 4;
+                int nx = i, ny = j;
                 if (dir == 0) nx--;
                 else if (dir == 1) nx++;
                 else if (dir == 2) ny--;
                 else ny++;
 
-                if (nx == px && ny == py) {
-                    perderVida();
-                    return;
-                }
-
+                if (nx == px && ny == py) { perderVida(); return; }
                 if (mapa[nx][ny] == '.') {
-                    mapa[nx][ny] = 'X';
-                    mapa[i][j] = '.';
+                    mapa[nx][ny] = 'X'; mapa[i][j] = '.';
+                    movido[nx][ny] = 1;
                 }
-
-                return;
             }
-        }
-    }
-}
-
-void moverMonstroPerseguidor(char mapa[MAX][MAX], int tamanho) {
-    int i, j, nx, ny;
-
-    for (i = 1; i < tamanho - 1; i++) {
-        for (j = 1; j < tamanho - 1; j++) {
-            if (mapa[i][j] == 'Y') {
-                nx = i;
-                ny = j;
-
+            else if (mapa[i][j] == 'Y') {
+                int nx = i, ny = j;
                 if (abs(px - i) > abs(py - j)) {
-                    if (px > i) nx++;
-                    else nx--;
+                    if (px > i) nx++; else nx--;
                 } else {
-                    if (py > j) ny++;
-                    else ny--;
+                    if (py > j) ny++; else ny--;
                 }
 
-                if (nx == px && ny == py) {
-                    perderVida();
-                    return;
-                }
-
+                if (nx == px && ny == py) { perderVida(); return; }
                 if (mapa[nx][ny] == '.') {
-                    mapa[nx][ny] = 'Y';
-                    mapa[i][j] = '.';
+                    mapa[nx][ny] = 'Y'; mapa[i][j] = '.';
+                    movido[nx][ny] = 1;
                 }
-
-                return;
             }
-        }
-    }
-}
+            else if (mapa[i][j] == 'Z') {
+                int nx = i, ny = j;
+                if (px > i) nx++; else if (px < i) nx--;
+                if (py > j) ny++; else if (py < j) ny--;
 
-void moverBoss(char mapa[MAX][MAX], int tamanho) {
-    int i, j, nx, ny;
-
-    for (i = 1; i < tamanho - 1; i++) {
-        for (j = 1; j < tamanho - 1; j++) {
-            if (mapa[i][j] == 'Z') {
-                nx = i;
-                ny = j;
-
-                if (px > i) nx++;
-                else if (px < i) nx--;
-
-                if (py > j) ny++;
-                else if (py < j) ny--;
-
-                if (nx == px && ny == py) {
-                    perderVida();
-                    return;
-                }
-
+                if (nx == px && ny == py) { perderVida(); return; }
                 if (mapa[nx][ny] == '.') {
-                    mapa[nx][ny] = 'Z';
-                    mapa[i][j] = '.';
+                    mapa[nx][ny] = 'Z'; mapa[i][j] = '.';
+                    movido[nx][ny] = 1;
                 }
-
-                return;
             }
         }
     }
@@ -401,13 +405,11 @@ void moverBoss(char mapa[MAX][MAX], int tamanho) {
 
 int bossVivo(char mapa[MAX][MAX], int tamanho) {
     int i, j;
-
     for (i = 0; i < tamanho; i++) {
         for (j = 0; j < tamanho; j++) {
             if (mapa[i][j] == 'Z') return 1;
         }
     }
-
     return 0;
 }
 
@@ -415,272 +417,153 @@ int jogarAndar(int andar, int tamanho) {
     char mapa[MAX][MAX];
     char comando;
     int nx, ny, fx, fy;
-    int i, j;
+    int r, c; 
 
     inicializarMapa(mapa, tamanho);
-
-    px = 1;
-    py = 1;
-    direcao = 'v';
+    px = 1; py = 1; direcao = 'v';
     temChave = 0;
 
     if (andar == 1) {
-        mapa[2][2] = '@';
-        mapa[4][4] = 'D';
-        mapa[3][3] = 'k';
-        mapa[8][8] = 'L';
-    }
-
-    if (andar == 2) {
-        mapa[2][2] = '@';
-        mapa[2][12] = '@';
-
-        mapa[6][6] = 'D';
-        mapa[7][7] = 'D';
-
-        mapa[4][4] = '#';
-        mapa[5][5] = 'O';
-        mapa[8][8] = 'X';
-
-        mapa[13][13] = 'L';
-    }
-
-    if (andar == 3) {
-        mapa[2][2] = '@';
-        mapa[2][20] = '@';
-        mapa[20][2] = '@';
-
-        mapa[5][5] = 'D';
-        mapa[10][10] = 'D';
-        mapa[15][15] = 'D';
-
-        mapa[6][6] = '#';
-        mapa[7][8] = '#';
-        mapa[12][12] = 'O';
-
-        mapa[8][8] = 'X';
-        mapa[14][14] = 'Y';
-        mapa[22][22] = 'Z';
+        mapa[2][2] = '@'; mapa[4][4] = 'D';
+        mapa[3][3] = 'k'; mapa[8][8] = 'L';
+    } else if (andar == 2) {
+        mapa[2][2] = '@';   mapa[2][12] = '@';
+        mapa[6][6] = 'D';   mapa[7][7] = 'D';
+        mapa[4][4] = '#';   mapa[5][5] = 'O'; 
+        mapa[8][8] = 'X';   mapa[13][13] = 'L';
+    } else if (andar == 3) {
+        mapa[2][2] = '@';   mapa[2][20] = '@';  mapa[20][2] = '@';
+        mapa[5][5] = 'D';   mapa[10][10] = 'D'; mapa[15][15] = 'D';
+        mapa[6][6] = '#';   mapa[7][8] = '#';   mapa[12][12] = 'O';
+        mapa[8][8] = 'X';   mapa[14][14] = 'Y'; mapa[22][22] = 'Z';
     }
 
     while (jogoRodando) {
-        if (andar == 1) mostrarMapa(mapa, tamanho, "PRIMEIRO ANDAR DA MASMORRA");
+        if (andar == 1) mostrarMapa(mapa, tamanho, "PRIMEIRO ANDAR DA MASMORRA (TUTORIAL)");
         else if (andar == 2) mostrarMapa(mapa, tamanho, "SEGUNDO ANDAR DA MASMORRA");
-        else mostrarMapa(mapa, tamanho, "TERCEIRO ANDAR - DESAFIO FINAL");
+        else mostrarMapa(mapa, tamanho, "TERCEIRO ANDAR - O DESAFIO FINAL");
 
         printf("\nComando: ");
         scanf(" %c", &comando);
         getchar();
 
-        nx = px;
-        ny = py;
-
+        nx = px; ny = py;
         if (comando == 'q' || comando == 'Q') return 0;
 
-        if (comando == 'w' || comando == 'W') {
-            direcao = '^';
-            nx--;
-        } else if (comando == 's' || comando == 'S') {
-            direcao = 'v';
-            nx++;
-        } else if (comando == 'a' || comando == 'A') {
-            direcao = '<';
-            ny--;
-        } else if (comando == 'd' || comando == 'D') {
-            direcao = '>';
-            ny++;
-        } else if (comando == 'o' || comando == 'O') {
-            ataque(mapa, tamanho);
-        } else if (comando == 'i' || comando == 'I') {
-            fx = frenteX();
-            fy = frenteY();
-
+        if (comando == 'w' || comando == 'W') { direcao = '^'; nx--; }
+        else if (comando == 's' || comando == 'S') { direcao = 'v'; nx++; }
+        else if (comando == 'a' || comando == 'A') { direcao = '<'; ny--; }
+        else if (comando == 'd' || comando == 'D') { direcao = '>'; ny++; }
+        else if (comando == 'o' || comando == 'O') { ataque(mapa, tamanho); }
+        else if (comando == 'i' || comando == 'I') {
+            fx = frenteX(); fy = frenteY();
             if (mapa[fx][fy] == '@') {
-                temChave++;
-                mapa[fx][fy] = '.';
-                printf("\nVoce pegou uma chave.\n");
-                pausar();
+                temChave++; mapa[fx][fy] = '.';
+                printf(ANSI_GREEN "\nVoce recolheu uma Chave!\n" ANSI_RESET); pausar();
             } else if (mapa[fx][fy] == 'D') {
                 if (temChave > 0) {
-                    temChave--;
-                    mapa[fx][fy] = '=';
-                    printf("\nVoce abriu uma porta.\n");
-                    pausar();
+                    temChave--; mapa[fx][fy] = '=';
+                    printf(ANSI_GREEN "\nA porta pesada se abriu.\n" ANSI_RESET); pausar();
                 } else {
-                    printf("\nVoce precisa de uma chave.\n");
-                    pausar();
+                    printf(ANSI_RED "\nEsta trancada. Você precisa de uma Chave.\n" ANSI_RESET); pausar();
                 }
             } else if (mapa[fx][fy] == 'O') {
-                printf("\nVoce apertou o botao. Um caminho secreto foi aberto.\n");
-                mapa[fx][fy] = '.';
-
-                for (i = 1; i < tamanho - 1; i++) {
-                    for (j = 1; j < tamanho - 1; j++) {
-                        if (mapa[i][j] == '*') mapa[i][j] = '.';
+                printf(ANSI_CYAN "\nVoce ouviu engrenagens se movendo remotamente!\n" ANSI_RESET);
+                mapa[fx][fy] = '.'; 
+                for (r = 0; r < tamanho; r++) {
+                    for (c = 0; c < tamanho; c++) {
+                        if (mapa[r][c] == 'D') mapa[r][c] = '=';
                     }
                 }
-
                 pausar();
             } else if (mapa[fx][fy] == 'L') {
-                printf("\nVoce subiu para o proximo andar.\n");
-                pausar();
-                return 1;
+                printf(ANSI_CYAN "\nVoce subiu as escadas rumo ao proximo nivel!\n" ANSI_RESET);
+                pausar(); return 1;
             } else {
-                printf("\nNao ha nada para interagir aqui.\n");
-                pausar();
+                printf("\nNada com que interagir aqui.\n"); pausar();
             }
         }
 
         if (mapa[nx][ny] == '*' || mapa[nx][ny] == 'D' || mapa[nx][ny] == 'k' ||
             mapa[nx][ny] == '@' || mapa[nx][ny] == 'O' || mapa[nx][ny] == 'L') {
-
-            if (comando == 'w' || comando == 'a' || comando == 's' || comando == 'd' ||
-                comando == 'W' || comando == 'A' || comando == 'S' || comando == 'D') {
-                printf("\nVoce nao pode passar por cima desse objeto. Use I para interagir ou O para atacar.\n");
-                pausar();
-            }
-
+            printf("\nObstaculo no caminho. Use 'I' para interagir ou 'O' para atacar.\n");
+            pausar();
         } else if (mapa[nx][ny] == '#') {
-            perderVida();
-            return 0;
+            perderVida(); return 0; 
         } else if (mapa[nx][ny] == 'X' || mapa[nx][ny] == 'Y' || mapa[nx][ny] == 'Z') {
-            perderVida();
-            return 0;
+            perderVida(); return 0; 
         } else {
-            px = nx;
-            py = ny;
+            px = nx; py = ny;
         }
 
-        if (andar == 3 && bossVivo(mapa, tamanho) == 0) {
+        if (andar == 3 && !bossVivo(mapa, tamanho)) {
             limpar();
-            printf("====================================================\n");
-            printf("                    VITORIA!\n");
-            printf("====================================================\n\n");
-            printf("O heroi derrotou o Boss Final.\n");
-            printf("Com coragem, ele conquistou sua redencao.\n");
-            printf("Agora, finalmente, pode voltar para seu reino.\n");
+            printf(ANSI_BOLD ANSI_GREEN "===================================================================\n" ANSI_RESET);
+            printf(ANSI_BOLD ANSI_GREEN "                        VITÓRIA ALCANÇADA!                         \n" ANSI_RESET);
+            printf(ANSI_BOLD ANSI_GREEN "===================================================================\n\n" ANSI_RESET);
+            printf(" Com um golpe final definitivo, a criatura cai sem forças no chao.\n");
+            printf(" A nevoa escura que cobria a regiao começa a se dissipar rapidamente.\n\n");
+            printf(ANSI_YELLOW " O heroi provou seu valor, conquistou sua redençao de volta perante o povo\n" ANSI_RESET);
+            printf(ANSI_YELLOW " e agora pode finalmente retornar ao seu reino com sua honra restabelecida.\n\n" ANSI_RESET);
+            printf(ANSI_BOLD ANSI_WHITE " Obrigado por jogar!\n" ANSI_RESET);
+            printf(ANSI_GREEN "===================================================================\n" ANSI_RESET);
+            jogoRodando = 0;
             pausar();
             return 2;
         }
 
-        moverMonstroAleatorio(mapa, tamanho);
-        moverMonstroPerseguidor(mapa, tamanho);
-        moverBoss(mapa, tamanho);
-
+        atualizarInimigos(mapa, tamanho);
         if (!jogoRodando) return 0;
     }
-
     return 0;
-}
-
-void tutorial() {
-    limpar();
-
-    printf("====================================================\n");
-    printf("                    TUTORIAL\n");
-    printf("====================================================\n\n");
-
-    printf("Simbolos:\n");
-    printf("< ^ > v = Jogador olhando para uma direcao\n");
-    printf("* = Parede\n");
-    printf("# = Espinho\n");
-    printf("k = Caixa destrutivel\n");
-    printf("O = Botao\n");
-    printf("D = Porta fechada\n");
-    printf("@ = Chave\n");
-    printf("= = Porta aberta\n");
-    printf("L = Escada\n");
-    printf("N = NPC\n");
-    printf("X = Monstro aleatorio\n");
-    printf("Y = Monstro perseguidor\n");
-    printf("Z = Boss Final\n\n");
-
-    printf("Comandos:\n");
-    printf("W = mover para cima\n");
-    printf("A = mover para esquerda\n");
-    printf("S = mover para baixo\n");
-    printf("D = mover para direita\n");
-    printf("I = interagir\n");
-    printf("O = atacar\n");
-    printf("Q = sair\n");
-
-    pausar();
-}
-
-void creditos() {
-    limpar();
-
-    printf("====================================================\n");
-    printf("                    CREDITOS\n");
-    printf("====================================================\n\n");
-
-    printf("Jogo: O Heroi da Redencao\n\n");
-
-    printf("Desenvolvedores:\n");
-    printf("- Karynnie\n");
-    printf("- Arthur Dantas 2\n");
-    printf("- Neto 3\n\n");
-
-    printf("Historia:\n");
-    printf("Um heroi em busca de redencao enfrenta monstros\n");
-    printf("para voltar ao seu reino.\n");
-
-    pausar();
 }
 
 void jogar() {
     int resultado;
-
-    vidas = 3;
-    arma = 0;
-    jogoRodando = 1;
+    vidas = 3; arma = 0; jogoRodando = 1;
 
     mostrarIntro();
     vila();
 
-    if (arma == 0) {
-        printf("\nVoce saiu da vila sem escolher uma arma.\n");
-        pausar();
-        return;
-    }
+    if (arma == 0) return; 
 
     while (jogoRodando) {
         resultado = jogarAndar(1, 10);
         if (!jogoRodando) break;
-        if (resultado == 0) continue;
+        if (resultado == 0) continue; 
 
         resultado = jogarAndar(2, 15);
         if (!jogoRodando) break;
         if (resultado == 0) continue;
 
         resultado = jogarAndar(3, 25);
-        if (resultado == 2) break;
-        if (!jogoRodando) break;
+        if (resultado == 2 || !jogoRodando) break;
     }
 }
 
 int main() {
     int opcao;
-
     srand(time(NULL));
+    ativarSuporteCores();
 
     do {
         limpar();
+        printf(ANSI_CYAN "====================================================\n" ANSI_RESET);
+        printf(ANSI_BOLD ANSI_MAGENTA "              O HEROI DA REDENCAO                   \n" ANSI_RESET);
+        printf(ANSI_CYAN "====================================================\n" ANSI_RESET);
+        printf(ANSI_WHITE "        Uma Aventura de Busca por Honra             \n" ANSI_RESET);
+        printf(ANSI_CYAN "====================================================\n\n" ANSI_RESET);
 
-        printf("====================================================\n");
-        printf("              O HEROI DA REDENCAO\n");
-        printf("====================================================\n");
-        printf("        Uma aventura em busca de honra\n");
-        printf("====================================================\n\n");
+        printf(ANSI_GREEN  "  [1] Iniciar Jornada\n" ANSI_RESET);
+        printf(ANSI_YELLOW "  [2] Tutorial\n" ANSI_RESET);
+        printf(ANSI_BLUE   "  [3] Creditos\n" ANSI_RESET);
+        printf(ANSI_RED    "  [4] Sair do Jogo\n\n" ANSI_RESET);
 
-        printf("[1] Iniciar Jornada\n");
-        printf("[2] Tutorial\n");
-        printf("[3] Creditos\n");
-        printf("[4] Sair\n\n");
-
-        printf("Escolha uma opcao: ");
-        scanf("%d", &opcao);
-        getchar();
+        printf("Escolha uma opcao do menu: ");
+        if (scanf("%d", &opcao) != 1) {
+            opcao = 0;
+        }
+        getchar(); 
 
         if (opcao == 1) {
             jogar();
@@ -689,12 +572,11 @@ int main() {
         } else if (opcao == 3) {
             creditos();
         } else if (opcao == 4) {
-            printf("\nSaindo do jogo...\n");
+            printf(ANSI_BOLD ANSI_WHITE "\nSaindo... Ate a próxima jornada!\n" ANSI_RESET);
         } else {
-            printf("\nOpcao invalida.\n");
+            printf(ANSI_RED "\nOpcao Invalida!\n" ANSI_RESET);
             pausar();
         }
-
     } while (opcao != 4);
 
     return 0;
