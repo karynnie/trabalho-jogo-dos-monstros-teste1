@@ -92,15 +92,6 @@ Escolhidas ao interagir com o NPC da Vila. A arma persiste por toda a partida.
 
 ---
 
-## 🚀 Compilação e Execução
-
-```bash
-gcc -o dungeon main.c
-./dungeon
-```
-
----
-
 ## 🤖 Uso de IA Generativa
 
 O projeto utilizou ferramentas de IA generativa como apoio ao aprendizado, para esclarecimento de dúvidas sobre sintaxe, lógica e depuração de código em C. Todo o código foi compreendido e implementado pelos integrantes da equipe.
